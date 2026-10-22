@@ -28,6 +28,15 @@
 * **Cómo se mitiga:** Se adoptan los umbrales de 35 (Warning) y 50 (Critical) pedidos/min como valores base para el arranque de la Semana 1. En la Semana 2 se calibrarán observando los datos simulados reales del *producer* en Spark.
 
 ---
+
+### 5. Plan de la Semana 2 y Enlaces de trazabilidad
+#### Plan para la Semana 2 (`v0.2.0-streaming`):
+1. Construir el generador en Python (`producer/`) emitiendo eventos continuos a Kafka.
+2. Desarrollar el job de PySpark consumiendo de Kafka, aplicando ventanas deslizantes de 5 minutos y persistiendo en `datalake/` en formato Parquet.
+3. Implementar las pruebas unitarias con `pytest` en `tests/` y habilitar el workflow de CI en GitHub Actions.
+
+---
+
 #### Trazabilidad en GitHub:
 * **Release:** `v0.1.0-foundation`
 * **Issue #1:** [Configuración Inicial](https://github.com/drago668/RapidGo_Grupo_3/issues/1#issue-5972061054)
