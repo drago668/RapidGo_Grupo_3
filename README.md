@@ -36,8 +36,8 @@ bash
 ```
 ## Indicadores Clave de Rendimiento (KPIs) y Reglas de Alerta
 
-> **Variante 5:** Demanda por zonas  
-> **Riesgo Principal:** Saturación y Déficit de Flota
+
+* **Riesgo Principal:** Saturación y Déficit de Flota
 * **Problema:** Picos masivos de solicitudes por zona que superan la capacidad de preparación en cocinas y la disponibilidad de repartidores, generando pedidos en estado `CREADO` sin asignar, incumplimiento de SLA y cancelaciones.
 ---
 
