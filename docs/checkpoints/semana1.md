@@ -39,7 +39,3 @@
   Tener más de 80 pedidos sin chofer asignado durante más de 10 minutos garantiza que el tiempo total de entrega superará los 45 minutos (violando el SLA prometido de RapidGo). Esta alerta protege la reputación del servicio evitando cancelaciones masivas.
 
 ---
-
-### 3. Impacto en el Diseño del Pipeline (Kafka + Spark)
-* **Kafka Key:** Se utiliza `zona_id` como clave del mensaje en Kafka para que todos los eventos de una misma zona caigan en la misma partición, garantizando orden cronológico estricto y eliminando operaciones costosas de *shuffle* al calcular las ventanas en Spark Streaming.
-* **Topic de Alertas:** Las alertas generadas por Spark Structured Streaming se publicarán en el topic `rapidgo.alertas` y se persistirán en formato Parquet en `datalake/processed/alertas/`.
