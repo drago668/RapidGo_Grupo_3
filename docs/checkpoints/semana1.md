@@ -16,8 +16,10 @@
 #### Fórmulas de Cálculo (Procesamiento en Spark)
 * **KPI 1 (Throughput):**
   $$\text{Throughput}(z, t) = \frac{\text{Conteo de pedidos en zona } z \text{ en la ventana } [t - 5\text{ min}, t]}{5\text{ minutos}}$$
+  
 * **KPI 2 (% Participación):**
   $$\% \text{ Demanda}(z) = \left( \frac{\text{Pedidos en Zona } z}{\sum_{k \in \text{Zonas}} \text{Pedidos en Zona } k} \right) \times 100$$
+  
 * **KPI 3 (Segmentación horaria):**
   $$\text{Volumen}(f, c) = \text{COUNT}(\text{pedidos}) \quad \forall \text{ timestamp} \in \text{Franja } f \land \text{categoría} = c$$
 
