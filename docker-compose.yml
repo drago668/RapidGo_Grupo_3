@@ -19,7 +19,18 @@ services:
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
     networks:
       - pipeline-net
-
+  producer:
+    build:
+      context: ./producer
+      dockerfile: Dockerfile
+    container_name: pipeline-producer
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:19092
+      - KAFKA_TOPIC=rapidgo_demanda_zonas
+    networks:
+      - pipeline-net
+    depends_on:
+      - kafka
   spark-master:
     image: spark:4.2.0-python3
     hostname: spark-master
