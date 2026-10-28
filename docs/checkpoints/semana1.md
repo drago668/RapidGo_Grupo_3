@@ -11,15 +11,15 @@
 ---
 
 ### 2. Valor o evidencia real observada en la ejecución
-* **Consistencia del esquema:** Se validó que el contrato de evento en `samples/` contiene de forma estricta los campos requeridos para las funciones de ventana en Spark (`zona_id`, `timestamp`, `categoria`, `estado`, `valor_total`).
+* **Consistencia del esquema:** Se validó que el contrato de evento en `samples/` contiene de forma estricta los campos requeridos para las funciones de ventana en Spark (`zona`, `timestamp`, `categoria`, `estado`, `valor_total`).
 * **Topología de Kafka:** Se definió el topic principal `rapidgo.pedidos` configurado con 4 particiones para balancear la carga de eventos.
 * **Trazabilidad de equipo:** Repositorio público configurado con los 3 integrantes como colaboradores y flujo de trabajo basado en ramas e Issues.
 
 ---
 
 ### 3. Decisión técnica más importante y por qué (ADR-001)
-* **Decisión:** Usar `zona_id` como clave (*message key*) de particionamiento en Kafka con 4 particiones físicas.
-* **Justificación técnica:** Dado que la Variante 5 analiza la demanda zonal, el uso de `zona_id` como key asegura que todos los pedidos de un mismo cuadrante caigan siempre en la misma partición y mantengan orden temporal estricto. Esto optimiza el procesamiento en Spark Structured Streaming, eliminando el costo de operaciones de *shuffle* masivo entre nodos al calcular las ventanas de 5 minutos por zona.
+* **Decisión:** Usar `zona` como clave (*message key*) de particionamiento en Kafka con 4 particiones físicas.
+* **Justificación técnica:** Dado que la Variante 5 analiza la demanda zonal, el uso de `zona` como key asegura que todos los pedidos de un mismo cuadrante caigan siempre en la misma partición y mantengan orden temporal estricto. Esto optimiza el procesamiento en Spark Structured Streaming, eliminando el costo de operaciones de *shuffle* masivo entre nodos al calcular las ventanas de 5 minutos por zona.
 
 ---
 
