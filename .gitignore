@@ -1,1 +1,5 @@
 .history
+producer/__pycache__/
+spark/__pycache__/
+tests/__pycache__/
+__pycache__/
