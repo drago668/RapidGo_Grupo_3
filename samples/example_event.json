@@ -1,7 +1,7 @@
 {
-  "pedido_id": "REQ-10542",
-  "zona": "Norte",
-  "timestamp": "2026-10-21T22:30:00Z",
+  "pedido_id": "PED-10542",
+  "zona": "ZONA_NORTE",
+  "timestamp": "2026-10-21 22:30:00",
   "categoria": "farmacia",
-  "estado": "creado"
+  "estado": "CREADO"
 }
