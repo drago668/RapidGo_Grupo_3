@@ -15,4 +15,4 @@ airflow users create \
     --password admin || true
 
 # 3. Ejecutar el comando original del contenedor (webserver o scheduler)
-exec airflow "$@"
+exec airflow "$@" 
