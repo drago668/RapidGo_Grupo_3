@@ -1,6 +1,13 @@
 .history
+<<<<<<< HEAD
+producer/__pycache__/
+spark/__pycache__/
+tests/__pycache__/
+__pycache__/
+=======
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
 .DS_Store
+>>>>>>> origin/Develop
