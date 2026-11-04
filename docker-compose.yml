@@ -93,6 +93,7 @@ services:
       - pipeline-net
 
   airflow-webserver:
+    build: .
     image: apache/airflow:2.7.2
     container_name: pipeline-airflow-webserver
     depends_on:
