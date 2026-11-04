@@ -45,18 +45,19 @@ def pipeline():
         return {**ingesta, "estado": "PROCESADO"}
 
     @task
-    def quality_check(datos: dict):
-        if datos["estado"] != "PROCESADO":
-            raise AirflowException(
-                f"Calidad fallida: estado {datos['estado']}, se esperaba PROCESADO"
-            )
+    def quality_check(datos_multiples: list):
+        pedidos_unificados = []
 
-        for pedido in datos["pedidos"]:
-            if not pedido["pedido_id"] or not pedido["zona"]:
-                raise AirflowException(f"Pedido inválido: {pedido}")
-
-        print("Control de calidad OK")
-        return datos
+        for datos in datos_multiples:
+            if datos["estado"] != "PROCESADO":
+                raise AirflowException(f"Calidad fallida: estado {datos['estado']}, se esperaba PROCESADO")
+            for pedido in datos["pedidos"]:
+                if not pedido["pedido_id"] or not pedido["zona"]:
+                    raise AirflowException(f"Pedido inválido: {pedido}")
+                
+            pedidos_unificados.extend(datos["pedidos"])
+        print("Control de calidad OK para las 4 ramas")
+        return {"estado": "PROCESADO", "pedidos": pedidos_unificados}
 
     @task
     def analizar_alertas_demanda(datos: dict):
@@ -78,11 +79,16 @@ def pipeline():
         return {"zonas": dict(conteo), "estado_final": "FINALIZADO"}
 
     inicio = trigger_source()
-    ingesta = kafka_ingest(inicio)
-    procesado = submit_spark_job(ingesta)
-    validado = quality_check(procesado)
-    alertas = analizar_alertas_demanda(validado)
-    analizar_zonas_saturadas(alertas)
+    ramas_procesadas = []
 
+    for i in range(1, 5):
+        ingesta = kafka_ingest.override(task_id=f"kafka_ingest_{i}")(inicio)
+        procesado = submit_spark_job.override(task_id=f"submit_spark_job_{i}")(ingesta)
+        ramas_procesadas.append(procesado)
+
+
+    validado = quality_check(ramas_procesadas)
+    alertas = analizar_alertas_demanda(validado)
+    zonas = analizar_zonas_saturadas(validado)
 
 dag_instance = pipeline()
