@@ -33,16 +33,7 @@ def pipeline():
         ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Simulación basada en producer.py
-        pedidos = [
-            {"pedido_id": "PED-001", "zona": "ZONA_CENTRO", "timestamp": ahora,
-             "categoria": "restaurante", "estado": "CREADO"},
-            {"pedido_id": "PED-002", "zona": "ZONA_CENTRO", "timestamp": ahora,
-             "categoria": "farmacia", "estado": "CREADO"},
-            {"pedido_id": "PED-003", "zona": "ZONA_NORTE", "timestamp": ahora,
-             "categoria": "supermercado", "estado": "CREADO"},
-            {"pedido_id": "PED-004", "zona": "ZONA_SUR", "timestamp": ahora,
-             "categoria": "express", "estado": "CREADO"},
-        ]
+        pedidos = []
         print(f"Kafka ingesta: {len(pedidos)} pedidos")
         # XCom: pasa metadatos de estado y lista de pedidos a la siguiente tarea
         return {"estado": "CREADO", "pedidos": pedidos}
@@ -65,6 +56,8 @@ def pipeline():
                     raise AirflowException(f"Pedido inválido: {pedido}")
                 
             pedidos_unificados.extend(datos["pedidos"])
+        if len(pedidos_unificados) == 0:
+            raise AirflowException("Control de Calidad Fallido: Data Lake vacío (0 pedidos encontrados para procesar).")
         print("Control de calidad OK para las 4 ramas")
         return {"estado": "PROCESADO", "pedidos": pedidos_unificados}
 
