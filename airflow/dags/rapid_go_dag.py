@@ -2,6 +2,7 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 from airflow.decorators import dag, task
 from airflow.exceptions import AirflowException
+from airflow.models import TaskInstance
 
 KAFKA_TOPIC = "rapidgo_demanda_zonas"
 
@@ -11,15 +12,22 @@ KAFKA_TOPIC = "rapidgo_demanda_zonas"
     schedule=None,
     start_date=datetime(2026, 10, 21, tzinfo=timezone.utc),
     catchup=False,
+    # Configuración base de reintentos para todo el DAG
+    default_args={
+        "retries": 1,
+        "retry_delay": timedelta(seconds=20),
+    },
 )
 def pipeline():
 
     @task
     def trigger_source():
         print("Iniciando pipeline rapid_go")
+        # XCom implícito: comparte metadato de inicio
         return {"estado": "INICIADO"}
 
-    @task
+    # RETRY CONFIGURADO: Justificado por ser ingesta de red/broker (fallo transitorio)
+    @task(retries=2, retry_delay=timedelta(seconds=30))
     def kafka_ingest(estado_previo: dict):
         print(f"Kafka topic={KAFKA_TOPIC} | estado previo={estado_previo['estado']}")
         ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -36,6 +44,7 @@ def pipeline():
              "categoria": "express", "estado": "CREADO"},
         ]
         print(f"Kafka ingesta: {len(pedidos)} pedidos")
+        # XCom: pasa metadatos de estado y lista de pedidos a la siguiente tarea
         return {"estado": "CREADO", "pedidos": pedidos}
 
     @task
@@ -60,15 +69,20 @@ def pipeline():
         return {"estado": "PROCESADO", "pedidos": pedidos_unificados}
 
     @task
-    def analizar_alertas_demanda(datos: dict):
+    def analizar_alertas_demanda(datos: dict, ti: TaskInstance = None):
         criticos = sum(
             1 for pedido in datos["pedidos"] if pedido["estado"] == "CREADO"
         )
         print(f"Pedidos en estado crítico (CREADO): {criticos}")
+        
+        # XCom Explícito: guarda métrica clave consultable en la UI de Airflow
+        if ti:
+            ti.xcom_push(key="total_pedidos_criticos", value=criticos)
+            
         return {**datos, "pedidos_criticos": criticos}
 
     @task
-    def analizar_zonas_saturadas(datos: dict):
+    def analizar_zonas_saturadas(datos: dict, ti: TaskInstance = None):
         conteo = Counter(
             pedido["zona"]
             for pedido in datos["pedidos"]
@@ -76,6 +90,11 @@ def pipeline():
         )
         print(f"Pedidos críticos por zona: {dict(conteo)}")
         print("Ciclo rapid_go finalizado")
+        
+        # XCom Explícito: guarda el diccionario de zonas calientes
+        if ti:
+            ti.xcom_push(key="resumen_zonas_calientes", value=dict(conteo))
+            
         return {"zonas": dict(conteo), "estado_final": "FINALIZADO"}
 
     inicio = trigger_source()
@@ -85,7 +104,6 @@ def pipeline():
         ingesta = kafka_ingest.override(task_id=f"kafka_ingest_{i}")(inicio)
         procesado = submit_spark_job.override(task_id=f"submit_spark_job_{i}")(ingesta)
         ramas_procesadas.append(procesado)
-
 
     validado = quality_check(ramas_procesadas)
     alertas = analizar_alertas_demanda(validado)
