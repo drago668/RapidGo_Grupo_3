@@ -24,7 +24,7 @@
 ### 3. Decisión técnica tomada y por qué
 
 Se eligió **inicialización manual de Airflow** en lugar del entrypoint automático. El script fallaba por CRLF/permisos, ejecutaba migraciones duplicadas entre webserver y scheduler y ocultaba los errores en el ciclo de vida del contenedor (commits `b19309e`, `58b2bf5`, `c31765b`, `dbf7e9e`). Los comandos manuales son visibles, repetibles y equivalentes en macOS y WSL 2.
-
+> Adicionalmente para cumplir con la tarea de provocar fallos controlados, se crea el directorio [`errors`](https://github.com/drago668/RapidGo_Grupo_3/tree/main/docs/errors)  
 ### 4. Problema encontrado y cómo se resolvió
 
 - **Problema:** `Connection refused` intermitentes entre Kafka, Spark y Airflow por condiciones de carrera.
@@ -34,6 +34,8 @@ Se eligió **inicialización manual de Airflow** en lugar del entrypoint automá
   **Tareas afectadas:** todas; el scheduler desactivó el DAG a las 13:48.
   **Solución:** se corrigió el `start_date`; el `DagFileProcessor` volvió a reportar `0 errors`.
 - **Pendiente:** el healthcheck de Spark usa `nc`, que no existe en la imagen (`/bin/sh: 1: nc: not found`), por lo que el master queda `unhealthy`. El fallo controlado en `quality_check` (Issues #25 y #26) aún no se ha provocado.
+
+- **Validación del datalake:** se agregó una revisión al inicio del pipeline que verifica si hay archivos Parquet en la carpeta del datalake. Si la carpeta está vacía, la tarea `validar_datalake` falla y las siguientes se detienen, mostrando un error en la interfaz de Airflow. Esto ayuda a detectar temprano si no se generaron los datos esperados.
 
 ### 5. Enlaces de trazabilidad
 
