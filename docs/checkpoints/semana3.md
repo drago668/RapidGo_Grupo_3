@@ -24,7 +24,7 @@
 ### 3. Decisión técnica tomada y por qué
 
 Se eligió **inicialización manual de Airflow** en lugar del entrypoint automático. El script fallaba por CRLF/permisos, ejecutaba migraciones duplicadas entre webserver y scheduler y ocultaba los errores en el ciclo de vida del contenedor (commits `b19309e`, `58b2bf5`, `c31765b`, `dbf7e9e`). Los comandos manuales son visibles, repetibles y equivalentes en macOS y WSL 2.
-
+> Adicionalmente para cumplir con la tarea de provocar fallos controlados, se crea el directorio [`errors`](https://github.com/drago668/RapidGo_Grupo_3/tree/main/docs/errors)  
 ### 4. Problema encontrado y cómo se resolvió
 
 - **Problema:** `Connection refused` intermitentes entre Kafka, Spark y Airflow por condiciones de carrera.
