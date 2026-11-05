@@ -35,6 +35,8 @@ Se eligió **inicialización manual de Airflow** en lugar del entrypoint automá
   **Solución:** se corrigió el `start_date`; el `DagFileProcessor` volvió a reportar `0 errors`.
 - **Pendiente:** el healthcheck de Spark usa `nc`, que no existe en la imagen (`/bin/sh: 1: nc: not found`), por lo que el master queda `unhealthy`. El fallo controlado en `quality_check` (Issues #25 y #26) aún no se ha provocado.
 
+- **Validación del datalake:** se agregó una revisión al inicio del pipeline que verifica si hay archivos Parquet en la carpeta del datalake. Si la carpeta está vacía, la tarea `validar_datalake` falla y las siguientes se detienen, mostrando un error en la interfaz de Airflow. Esto ayuda a detectar temprano si no se generaron los datos esperados.
+
 ### 5. Enlaces de trazabilidad
 
 - **PR #28:** https://github.com/drago668/RapidGo_Grupo_3/pull/28
