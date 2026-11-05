@@ -3,9 +3,9 @@ from datetime import datetime, timedelta, timezone
 from airflow.decorators import dag, task
 from airflow.exceptions import AirflowException
 from airflow.models import TaskInstance
+from pathlib import Path
 
 KAFKA_TOPIC = "rapidgo_demanda_zonas"
-
 
 @dag(
     dag_id="rapid_go",
@@ -54,7 +54,17 @@ def pipeline():
         return {**ingesta, "estado": "PROCESADO"}
 
     @task
-    def quality_check(datos_multiples: list):
+    def validar_datalake(ramas_procesadas: list):
+        print(f"Validando datalake después de {len(ramas_procesadas)} ramas")
+        archivos = list(Path("/datalake/processed").rglob("*.parquet"))
+        if not archivos:
+            raise AirflowException(
+                "Data Lake vacío: no hay archivos en /datalake/processed"
+            )
+        return True
+
+    @task
+    def quality_check(datos_multiples: list, datalake_ok: bool):
         pedidos_unificados = []
 
         for datos in datos_multiples:
@@ -104,8 +114,9 @@ def pipeline():
         ingesta = kafka_ingest.override(task_id=f"kafka_ingest_{i}")(inicio)
         procesado = submit_spark_job.override(task_id=f"submit_spark_job_{i}")(ingesta)
         ramas_procesadas.append(procesado)
-
-    validado = quality_check(ramas_procesadas)
+        
+    validacion = validar_datalake(ramas_procesadas) 
+    validado = quality_check(ramas_procesadas, validacion)
     alertas = analizar_alertas_demanda(validado)
     zonas = analizar_zonas_saturadas(validado)
 
