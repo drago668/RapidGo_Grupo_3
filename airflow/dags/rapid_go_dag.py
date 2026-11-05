@@ -31,8 +31,6 @@ def pipeline():
     def kafka_ingest(estado_previo: dict):
         print(f"Kafka topic={KAFKA_TOPIC} | estado previo={estado_previo['estado']}")
         ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        raise AirflowException("Error crítico: Conexión rechazada con el broker de Kafka en puerto 19092")
-        # Simulación basada en producer.py
         pedidos = [
             {"pedido_id": "PED-001", "zona": "ZONA_CENTRO", "timestamp": ahora,
              "categoria": "restaurante", "estado": "CREADO"},
