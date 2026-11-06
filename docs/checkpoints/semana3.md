@@ -36,6 +36,7 @@ Se eligió **inicialización manual de Airflow** en lugar del entrypoint automá
 - **Pendiente:** el healthcheck de Spark usa `nc`, que no existe en la imagen (`/bin/sh: 1: nc: not found`), por lo que el master queda `unhealthy`. El fallo controlado en `quality_check` (Issues #25 y #26) aún no se ha provocado.
 
 - **Validación del datalake:** se agregó una revisión al inicio del pipeline que verifica si hay archivos Parquet en la carpeta del datalake. Si la carpeta está vacía, la tarea `validar_datalake` falla y las siguientes se detienen, mostrando un error en la interfaz de Airflow. Esto ayuda a detectar temprano si no se generaron los datos esperados.
+- **Validación de calidad:** la tarea `quality_check` revisa que pedido_id y zona no estén vacíos. Para probarlo se envió un pedido con zona vacía: la tarea falló y las siguientes se detuvieron. Al corregir el dato y usar Clear task, el DAG terminó en success. Ver docs/errors/error3.md.
 
 ### 5. Enlaces de trazabilidad
 
