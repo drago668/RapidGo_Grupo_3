@@ -34,7 +34,7 @@ def pipeline():
 
         # Simulación basada en producer.py
         pedidos = [
-            {"pedido_id": "PED-001", "zona": "ZONA_CENTRO", "timestamp": ahora,
+            {"pedido_id": "PED-001", "zona": , "timestamp": ahora,
              "categoria": "restaurante", "estado": "CREADO"},
             {"pedido_id": "PED-002", "zona": "ZONA_CENTRO", "timestamp": ahora,
              "categoria": "farmacia", "estado": "CREADO"},
