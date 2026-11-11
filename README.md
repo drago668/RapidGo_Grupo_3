@@ -77,3 +77,67 @@ bash
   Tener más de 80 pedidos sin chofer asignado durante más de 10 minutos garantiza que el tiempo total de entrega superará los 45 minutos (violando el SLA prometido de RapidGo). Esta alerta protege la reputación del servicio evitando cancelaciones masivas.
 
 ---
+
+## Topics y Contrato de Eventos (Kafka)
+
+* **Topic principal:** `rapidgo_demanda_zonas`
+* **Clave de particionamiento:** `zona` (garantiza orden cronológico zonal y optimiza el cálculo de ventanas en Spark sin *shuffle*, según ADR-001).
+* **Esquema del evento de pedido (JSON):**
+
+```json
+{
+  "pedido_id": "PED-001",
+  "zona": "ZONA_CENTRO",
+  "timestamp": "2026-11-10 20:15:30",
+  "categoria": "restaurante",
+  "estado": "CREADO"
+}
+```
+
+---
+
+## Cómo Ejecutar Pruebas y GitHub Actions
+
+### 1. Pruebas Locales
+Para verificar la calidad del código y la configuración antes de hacer push:
+
+```bash
+# 1. Instalar dependencias
+pip install -r requirements.txt
+
+# 2. Validar sintaxis en todo el proyecto
+python -m compileall producer spark tests
+
+# 3. Ejecutar pruebas unitarias de reglas y umbrales
+python -m pytest -v
+
+# 4. Validar sintaxis del archivo Docker Compose
+docker compose config --quiet
+```
+
+### 2. Integración Continua (GitHub Actions)
+* **Automática:** Cada `push` o `Pull Request` hacia la rama principal ejecuta el workflow `ci.yml`, asegurando que no se integre código roto ni fallen las pruebas de umbrales.
+* **Manual (`workflow_dispatch`):** 
+  1. Ve al repositorio en GitHub y haz clic en la pestaña **Actions**.
+  2. Selecciona el workflow a la izquierda .
+  3. Haz clic en el botón desplegable **Run workflow** y confirma en **Run workflow**.
+
+---
+
+## Cómo Acceder a Airflow y Ejecutar el DAG
+
+1. **Asegurar que los contenedores estén corriendo:**
+   ```bash
+   docker compose up -d
+   ```
+2. **Acceder a la interfaz web:**
+   * Abre tu navegador en: [http://localhost:8085](http://localhost:8085)
+   * **Usuario:** `admin`
+   * **Contraseña:** `admin`
+3. **Ejecutar el DAG:**
+   * En el listado de DAGs, busca **`rapid_go_dag`**.
+   * Asegúrate de que el interruptor (toggle) a la izquierda esté en **ON** (azul).
+   * En la columna de acciones a la derecha, haz clic en el botón **Trigger DAG** (botón de **Play**).
+4. **Monitoreo y Trazabilidad:**
+   * Haz clic sobre el nombre del DAG y entra a la pestaña **Graph** para ver las 12 tareas ejecutándose en paralelo y secuencia.
+   * Para consultar los datos compartidos por XCom: ve al menú superior **Admin $\rightarrow$ XComs** para ver las métricas consolidadas (`total_pedidos_criticos`, `resumen_zonas_calientes`).
