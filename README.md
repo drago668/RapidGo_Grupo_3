@@ -2,16 +2,34 @@
 
 ## Índice
 
+- [Variante 5: demanda por zonas](#variante-5-demanda-por-zonas)
 - [Miembros del grupo](#miembros-del-grupo)
 - [Problema de negocio](#problema-de-negocio)
+  - [Valor de la solución](#valor-de-la-solución)
 - [Arquitectura de la solución](#arquitectura-de-la-solucion)
 - [Tecnologías usadas](#tecnologias-usadas)
-- [Prerrequisitos](#prerequisitos)
+  - [Roles](#roles)
+- [Prerrequisitos](#prerrequisitos)
 - [Cómo ejecutar localmente](#como-ejecutar-localmente)
-- [KPIs y reglas de alerta](#indicadores-clave-de-rendimiento-kpis-y-reglas-de-alerta)
-- [Topics y contrato de eventos](#topics-y-contrato-de-eventos-kafka)
-- [Pruebas y GitHub Actions](#cómo-ejecutar-pruebas-y-github-actions)
-- [Airflow y DAG](#cómo-acceder-a-airflow-y-ejecutar-el-dag)
+- [Indicadores Clave de Rendimiento (KPIs) y Reglas de Alerta](#indicadores-clave-de-rendimiento-kpis-y-reglas-de-alerta)
+  - [1. Definición de KPIs Mínimos](#1-definición-de-kpis-mínimos)
+  - [Fórmulas de Cálculo (Procesamiento en Spark)](#fórmulas-de-cálculo-procesamiento-en-spark)
+  - [2. Reglas de Alerta Operacionales y Umbrales Iniciales](#2-reglas-de-alerta-operacionales-y-umbrales-iniciales)
+  - [Justificación Técnica y de Negocio de los Umbrales](#justificación-técnica-y-de-negocio-de-los-umbrales)
+- [Topics y Contrato de Eventos (Kafka)](#topics-y-contrato-de-eventos-kafka)
+- [Cómo Ejecutar Pruebas y GitHub Actions](#cómo-ejecutar-pruebas-y-github-actions)
+  - [1. Pruebas Locales](#1-pruebas-locales)
+  - [2. Integración Continua (GitHub Actions)](#2-integración-continua-github-actions)
+- [Cómo Acceder a Airflow y Ejecutar el DAG](#cómo-acceder-a-airflow-y-ejecutar-el-dag)
+- [Resultados](#resultados)
+  - [Pipeline Integrado](#pipeline-integrado)
+  - [Control de Demanda y Zonas](#control-de-demanda-y-zonas)
+  - [Resiliencia y Pruebas](#resiliencia-y-pruebas)
+  - [Evidencia](#evidencia)
+- [Limitaciones y trabajo futuro](#limitaciones-y-trabajo-futuro)
+  - [Limitaciones](#limitaciones)
+  - [Trabajo futuro](#trabajo-futuro)
+- [Tabla de Contribuciones](#tabla-de-contribuciones)
 
 ### *Variante 5* **demanda por zonas**
 
@@ -287,7 +305,6 @@ Se implementaron pruebas automatizadas con pytest y flujos de Integración Conti
 ![Sistema corriendo correctamente](image/README/image.png)
 ![Comprobación con el workflow](image/README/image-1.png)
 
-
 ## Limitaciones y trabajo futuro
 
 ### Limitaciones:
@@ -305,8 +322,8 @@ Conectar el sistema a una infraestructura de producción real en la nube y habil
 ## Tabla de Contribuciones
 
 
-| Integrante                          | Responsabilidades Principales                                                                                                                                                                            | Issues Clave                                                                                                                                                                    | PRs Principales                                                                                                                                                                                                                                                                                                                   |
-| :------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Daniel Esteban Rivera Gomez**     | • Configuración inicial (docker , entorno virtual y estructura base).• Creación del GitHub Actions.• Creación del DAG en Airflow y las tareas iniciales • Implementación del error 1 controlado. | • `#1` (Arquitectura)• `#7` (Creación GitHub Actions) • `#25` (test: Provocar y observar un fallo controlado en el pipeline)                                                | • **PR #19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19** (validar sintaxis, pruebas)• **PR #28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28** (Creación de tareas en el DAG)                                                  |
-| **Luisa Valentina Rodriguez Perez** | • Integración deL producer.• Configuración de politica de reintentos en el DAG.  • Implementación del error 3 controlado                                                                           | • `#4` (Desarrollo del Producer)• `#24` (Implementar paso de metadatos con XCom usando contrato JSON) • `#25` (test: Provocar y observar un fallo controlado en el pipeline) | • **PR #17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17** (Creacion del Producer y su acoplamiento)• **PR #29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29** (Implementacion de XCom y de la politica de reintento justificado) |
-| **Shirley Dayana Perez Esquivel**   | • Desarrollo del Spark.• Desarrollo de las tareas en paralelo en el DAG.• Implementación del error 2 controlado.                                                                                     | • `#5` (Construcción del scrip de Spark)• `#6` (Implementación para calcular KPIs) • `#23` (Definir dependencias y flujo en paralelo)                                      | • **PR #16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16** (Spark streaming)• **PR #13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13** (adr 001)                                                                                  |
+| Integrante                          | Responsabilidades Principales                                                                                                                                                                            | Issues Clave                                                                                                                                                                    | PRs Principales                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| :------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Daniel Esteban Rivera Gomez**     | • Configuración inicial (docker , entorno virtual y estructura base).• Creación del GitHub Actions.• Creación del DAG en Airflow y las tareas iniciales • Implementación del error 1 controlado. | • `#1` (Arquitectura)• `#7` (Creación GitHub Actions) • `#25` (test: Provocar y observar un fallo controlado en el pipeline)                                                | • **PR #19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19** (validar sintaxis, pruebas)• **PR #28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28** (Creación de tareas en el DAG)                                                  |
+| **Luisa Valentina Rodriguez Perez** | • Integración deL producer.• Configuración de politica de reintentos en el DAG.  • Implementación del error 3 controlado                                                                           | • `#4` (Desarrollo del Producer)• `#24` (Implementar paso de metadatos con XCom usando contrato JSON) • `#25` (test: Provocar y observar un fallo controlado en el pipeline) | • **PR #17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17** (Creacion del Producer y su acoplamiento)• **PR #29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29** (Implementacion de XCom y de la politica de reintento justificado) |
+| **Shirley Dayana Perez Esquivel**   | • Desarrollo del Spark.• Desarrollo de las tareas en paralelo en el DAG.• Implementación del error 2 controlado.                                                                                     | • `#5` (Construcción del scrip de Spark)• `#6` (Implementación para calcular KPIs) • `#23` (Definir dependencias y flujo en paralelo)                                      | • **PR #16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16** (Spark streaming)• **PR #13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13** (adr 001)                                                                                  |
