@@ -45,13 +45,42 @@
 
 ## Problema de negocio
 
-RapidGo es una plataforma de entregas que necesita una plataforma de datos capaz de capturar eventos operacionales, procesarlos, almacenarlos, generar indicadores y automatizar procesos de control. Todos los equipos trabajarán sobre la misma organización, pero resolverán problemas diferentes.
+RapidGo es una plataforma de entregas que conecta comercios, repartidores y clientes en distintas zonas de la ciudad. La demanda no es pareja: en las horas pico, algunas zonas reciben muchos más pedidos de los que sus cocinas y repartidores pueden atender.
+
+El problema es que hoy la empresa se entera de esos picos cuando ya ocurrieron. La información llega al día siguiente, así que las decisiones se toman a mano y con experiencia, mientras unos repartidores quedan sin trabajo y a otros no les alcanza el tiempo para cubrir la demanda.
+
+En concreto, hoy no es posible:
+
+- Saber en el momento qué zona está recibiendo demasiados pedidos.
+- Recibir un aviso cuando la capacidad de una zona se está quedando corta.
+- Repartir la flota con datos, en lugar de hacerlo por intuición.
+- Evitar que el cliente espere de más o cancele por falta de repartidor.
+
+El proyecto busca cubrir esa necesidad con información actualizada al minuto: ver la demanda por zona, avisar al equipo de logística cuando una zona se esté saturando y apoyar decisiones sencillas como mover repartidores o activar tarifa dinámica. Nos enfocamos en la Variante 5 (demanda por zonas), donde cada pedido aporta su zona, la hora, la categoría del comercio y su estado.
 
 ### Valor de la solución
 
-Mmmmm
+El pipeline convierte eventos de pedidos dispersos en decisiones operativas en
+casi tiempo real. Aporta valor en tres frentes:
+
+- **Operativo:** detecta zonas que superan 35 ped/min (warning) o 50 ped/min (critical) y activa *surge pricing* y rebalanceo de flota antes de que se incumpla el SLA de 45 minutos.
+- **Analítico:** el Data Lake en Parquet conserva eventos (`processed/`) y KPIs (`curated/`), habilitando análisis histórico de demanda por franja y categoría.
+- **Automatización:** Airflow orquesta el control de calidad y consolida resultados vía XCom, sin intervención manual.
+
+
+| Dolor actual                 | Cómo lo ataca la solución                  | Evidencia                |
+| :----------------------------- | :--------------------------------------------- | :------------------------- |
+| Pedidos `CREADO` sin asignar | Regla de capacidad > 80 pedidos por > 10 min | `spark/reglas.py`, `spark/spark_stream.py` |
+| Picos no anticipados         | KPIs de ventana deslizante de 5 min          | `kpi_pedidos_por_minuto` |
 
 ## Arquitectura de la solucion
+
+1. `producer/` publica eventos JSON al topic `rapidgo_demanda_zonas` (key = zona).
+2. Kafka (KRaft, 9092/19092) retiene y particiona por zona.
+3. Spark Structured Streaming consume, aplica watermark y calcula KPIs en ventanas.
+4. Resultados en Parquet: `data/processed/` (eventos) y `data/curated/` (KPIs/alertas).
+5. Airflow ejecuta las 4 ramas del DAG y expone métricas por XCom.
+
 
 ![arquitectura](image/README/arquitectura.svg)
 
@@ -75,6 +104,16 @@ Mmmmm
 | Control de versiones | Git + GitHub                                                    | —                          | Ramas, PR, issues, releases y ADR.                                                                                            |
 
 ### Roles
+
+
+| Rol                        | Integrante                      | Responsabilidad principal         | Entregable                                             |
+| :--------------------------- | :-------------------------------- | :---------------------------------- | :------------------------------------------------------- |
+| Infraestructura y CI/CD    | Daniel Esteban Rivera Gomez     | Docker, GitHub Actions, DAG base  | `docker-compose.yml`, `.github/workflows/ci.yml`       |
+| Ingesta y orquestación    | Luisa Valentina Rodriguez Perez | Producer Kafka, reintentos y XCom | `producer/producer.py`, `airflow/dags/rapid_go_dag.py` |
+| Procesamiento y analítica | Shirley Dayana Perez Esquivel   | Spark Streaming, KPIs y reglas    | `spark/spark_stream.py`, `spark/reglas.py`             |
+
+Las tres personas comparten la responsabilidad sobre pruebas (`tests/`) y la
+documentación de errores controlados (`docs/errors/`).
 
 ## Prerequisitos
 
@@ -184,22 +223,13 @@ Para poder acceder y correr de forma local este flujo de trabajo puedes seguir l
 
 * **KPI 1 (Rendimiento):**
 
-  $$
-  \text{Throughput}(z, t) = \frac{\text{Conteo de pedidos en zona } z \text{ en la ventana } [t - 5\text{ min}, t]}{5\text{ minutos}}
-
-  $$
+  $$\text{Throughput}(z, t) = \frac{\text{Conteo de pedidos en zona } z \text{ en la ventana } [t - 5\text{ min}, t]}{5\text{ minutos}}$$
 * **KPI 2 (% Participación):**
 
-  $$
-  \ \text{ Demanda}(z) = \left( \frac{\text{Pedidos en Zona } z}{\sum_{k \in \text{Zonas}} \text{Pedidos en Zona } k} \right) \times 100
-
-  $$
+  $$\text{Demanda}(z) = \left( \frac{\text{Pedidos en Zona } z}{\sum_{k \in \text{Zonas}} \text{Pedidos en Zona } k} \right) \times 100$$
 * **KPI 3 (Segmentación horaria):**
 
-  $$
-  \text{Volumen}(f, c) = \text{COUNT}(\text{pedidos}) \quad \forall \text{ timestamp} \in \text{Franja } f \land \text{categoría} = c
-
-  $$
+  $$\text{Volumen}(f, c) = \text{COUNT}(\text{pedidos}) \quad \forall \text{ timestamp} \in \text{Franja } f \land \text{categoría} = c$$
 
 ---
 
@@ -302,7 +332,12 @@ Se implementaron pruebas automatizadas con pytest y flujos de Integración Conti
 
 ### Evidencia
 
+ **Pipeline en ejecución:** los 7 contenedores levantados y el DAG `rapid_go` completando sus tareas
+
 ![Sistema corriendo correctamente](image/README/image.png)
+
+**CI en verde:** `compileall`, `pytest` y `docker compose config` validados por GitHub Actions.
+
 ![Comprobación con el workflow](image/README/image-1.png)
 
 ## Limitaciones y trabajo futuro
@@ -322,8 +357,8 @@ Conectar el sistema a una infraestructura de producción real en la nube y habil
 ## Tabla de Contribuciones
 
 
-| Integrante                          | Responsabilidades Principales                                                                                                                                                                            | Issues Clave                                                                                                                                                                    | PRs Principales                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| :------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Daniel Esteban Rivera Gomez**     | • Configuración inicial (docker , entorno virtual y estructura base).• Creación del GitHub Actions.• Creación del DAG en Airflow y las tareas iniciales • Implementación del error 1 controlado. | • `#1` (Arquitectura)• `#7` (Creación GitHub Actions) • `#25` (test: Provocar y observar un fallo controlado en el pipeline)                                                | • **PR #19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19** (validar sintaxis, pruebas)• **PR #28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28** (Creación de tareas en el DAG)                                                  |
-| **Luisa Valentina Rodriguez Perez** | • Integración deL producer.• Configuración de politica de reintentos en el DAG.  • Implementación del error 3 controlado                                                                           | • `#4` (Desarrollo del Producer)• `#24` (Implementar paso de metadatos con XCom usando contrato JSON) • `#25` (test: Provocar y observar un fallo controlado en el pipeline) | • **PR #17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17** (Creacion del Producer y su acoplamiento)• **PR #29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29** (Implementacion de XCom y de la politica de reintento justificado) |
-| **Shirley Dayana Perez Esquivel**   | • Desarrollo del Spark.• Desarrollo de las tareas en paralelo en el DAG.• Implementación del error 2 controlado.                                                                                     | • `#5` (Construcción del scrip de Spark)• `#6` (Implementación para calcular KPIs) • `#23` (Definir dependencias y flujo en paralelo)                                      | • **PR #16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16** (Spark streaming)• **PR #13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13** (adr 001)                                                                                  |
+| Integrante | Responsabilidades Principales | Issues Clave | PRs Principales |
+| :--- | :--- | :--- | :--- |
+| **Daniel Esteban Rivera Gomez** | • Configuración inicial (docker, entorno virtual y estructura base).<br />• Creación del GitHub Actions.<br />• Creación del DAG en Airflow y las tareas iniciales.<br />• Implementación del error 1 controlado. | • `#1` (Arquitectura)<br />• `#7` (Creación GitHub Actions)<br />• `#25` (test: Provocar y observar un fallo controlado en el pipeline) | • **PR #19** (validar sintaxis, pruebas)<br />• **PR #28** (Creación de tareas en el DAG) |
+| **Luisa Valentina Rodriguez Perez** | • Integración del producer.<br />• Configuración de política de reintentos en el DAG.<br />• Implementación del error 3 controlado. | • `#4` (Desarrollo del Producer)<br />• `#24` (Implementar paso de metadatos con XCom usando contrato JSON)<br />• `#25` (test: Provocar y observar un fallo controlado en el pipeline) | • **PR #17** (Creación del Producer y su acoplamiento)<br />• **PR #29** (Implementación de XCom y de la política de reintento justificado) |
+| **Shirley Dayana Perez Esquivel** | • Desarrollo del Spark.<br />• Desarrollo de las tareas en paralelo en el DAG.<br />• Implementación del error 2 controlado. | • `#5` (Construcción del script de Spark)<br />• `#6` (Implementación para calcular KPIs)<br />• `#23` (Definir dependencias y flujo en paralelo) | • **PR #16** (Spark streaming)<br />• **PR #13** (adr 001) |
