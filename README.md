@@ -141,3 +141,38 @@ docker compose config --quiet
 4. **Monitoreo y Trazabilidad:**
    * Haz clic sobre el nombre del DAG y entra a la pestaña **Graph** para ver las 12 tareas ejecutándose en paralelo y secuencia.
    * Para consultar los datos compartidos por XCom: ve al menú superior **Admin $\rightarrow$ XComs** para ver las métricas consolidadas (`total_pedidos_criticos`, `resumen_zonas_calientes`).
+
+## Resultados
+### Pipeline Integrado
+  Se logró la ejecución completa del sistema, transportando eventos de pedidos desde kafka, procesándolos mediante Spark Structured Streaming, almacenándolos en capas en el Data Lake y controlando su ejecución con Apache Airflow.
+
+### Control de Demanda y Zonas
+ El sistema procesa correctamente las cuatro ramas paralelas, permitiendo identificar zonas calientes y calcular métricas de pedidos críticos mediante el uso de XCom y tareas de control de calidad.
+
+### Resiliencia y Pruebas 
+Se implementaron pruebas automatizadas con pytest y flujos de Integración Continua en GitHub Actions que validan la sintaxis y la integridad del DAG de Airflow ante fallos controlados de infraestructura.
+
+### Evidencia
+![Sistema corriendo correctamente](image.png) 
+![Comprobación con el workflow](image-1.png)
+
+
+
+## Limitaciones y trabajo futuro
+### Limitaciones: 
+Los umbrales para detectar zonas calientes y picos de demanda están configurados de manera estática en las reglas del negocio, lo que significa que no se adaptan automáticamente a cambios estacionales o tendencias imprevistas del mercado.
+
+El pipeline procesa volúmenes de datos simulados a través de micro-lotes controlados, por lo que no se evaluó su comportamiento bajo condiciones de tráfico masivo concurrente en tiempo real continuo.
+
+### Trabajo futuro 
+Integrar modelos de Machine Learning o análisis predictivo de series temporales para anticipar los picos de demanda por zonas en lugar de reaccionar únicamente cuando el umbral ya fue superado.
+
+Conectar el sistema a una infraestructura de producción real en la nube y habilitar canales de notificación automáticos (como alertas por Webhook, Slack o correo) para el equipo de logística cuando una zona entre en estado crítico.
+
+## Tabla de Contribuciones 
+
+| Integrante | Responsabilidades Principales | Issues Clave | PRs Principales |
+| :--- | :--- | :--- | :--- |
+| **Daniel Esteban Rivera Gomez**  | • Configuración inicial (docker , entorno virtual y estructura base).<br>• Creación del GitHub Actions.<br>• Creación del DAG en Airflow y las tareas iniciales <br>• Implementación del error 1 controlado. | • `#1` (Arquitectura)<br>• `#7` (Creación GitHub Actions) <br>• `#25` (test: Provocar y observar un fallo controlado en el pipeline)| • **PR #19** (validar sintaxis, pruebas)<br>• **PR #28** (Creación de tareas en el DAG) |
+| **Luisa Valentina Rodriguez Perez** | <br>• Integración deL producer.<br>• Configuración de politica de reintentos en el DAG. <br> • Implementación del error 3 controlado | • `#4` (Desarrollo del Producer)<br>• `#24` (Implementar paso de metadatos con XCom usando contrato JSON) <br>• `#25` (test: Provocar y observar un fallo controlado en el pipeline)| • **PR #17** (Creacion del Producer y su acoplamiento)<br>• **PR #29** (Implementacion de XCom y de la politica de reintento justificado) |
+| **Shirley Dayana Perez Esquivel**| • Desarrollo del Spark.<br>• Desarrollo de las tareas en paralelo en el DAG.<br>• Implementación del error 2 controlado. | • `#5` (Construcción del scrip de Spark)<br>• `#6` (Implementación para calcular KPIs) <br>• `#23` (Definir dependencias y flujo en paralelo) | • **PR #16** (Spark streaming)<br>• **PR #13** (adr 001) |
