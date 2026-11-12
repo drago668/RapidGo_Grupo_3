@@ -39,14 +39,7 @@ Mmmmm
 
 ## Arquitectura de la solucion
 
-![1794405016332](image/README/1794405016332.png)
-
 ![arquitectura](image/README/arquitectura.svg)
-
-
-![1794405063884](image/README/1794405063884.png)
-
-![1794405174089](image/README/1794405174089.png)
 
 ## Tecnologias usadas
 
