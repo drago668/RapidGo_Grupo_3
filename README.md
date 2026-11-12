@@ -2,6 +2,19 @@
 
 # RapidGo Grupo 3
 
+## Índice
+
+- [Miembros del grupo](#miembros-del-grupo)
+- [Problema de negocio](#problema-de-negocio)
+- [Arquitectura de la solución](#arquitectura-de-la-solucion)
+- [Tecnologías usadas](#tecnologias-usadas)
+- [Prerrequisitos](#prerequisitos)
+- [Cómo ejecutar localmente](#como-ejecutar-localmente)
+- [KPIs y reglas de alerta](#indicadores-clave-de-rendimiento-kpis-y-reglas-de-alerta)
+- [Topics y contrato de eventos](#topics-y-contrato-de-eventos-kafka)
+- [Pruebas y GitHub Actions](#cómo-ejecutar-pruebas-y-github-actions)
+- [Airflow y DAG](#cómo-acceder-a-airflow-y-ejecutar-el-dag)
+
 ### *Variante 5* **demanda por zonas**
 
 > **Eventos:** zona, timestamp, categoria, estado
@@ -28,11 +41,31 @@ Mmmmm
 
 ![1794405016332](image/README/1794405016332.png)
 
+![arquitectura](image/README/arquitectura.svg)
+
+
 ![1794405063884](image/README/1794405063884.png)
 
 ![1794405174089](image/README/1794405174089.png)
 
 ## Tecnologias usadas
+
+
+| Capa                 | Tecnología                                                     | Versión                    | Uso en el proyecto                                                                                                            |
+| :--------------------- | :---------------------------------------------------------------- | :---------------------------- | :------------------------------------------------------------------------------------------------------------------------------ |
+| Contenedores         | Docker + Docker Compose                                         | Compose v2                  | Orquesta los 7 servicios, la red `pipeline-net`, los volúmenes y los healthchecks.                                           |
+| Mensajería          | Apache Kafka (KRaft)                                            | 4.3.1                       | Bus de eventos. Topic `rapidgo_demanda_zonas`, key `zona`, listeners `9092` (host), `19092` (interno) y `29093` (controller). |
+| Procesamiento        | Apache Spark + Structured Streaming                             | 4.2.0                       | Master + 1 worker (1 core, 768 MB). Ventanas deslizantes/fijas, watermarks y escritura en Parquet.                            |
+| Orquestación        | Apache Airflow                                                  | 2.7.2                       | `LocalExecutor`; webserver en `8085`; DAG `rapid_go` con 4 ramas paralelas, reintentos y XCom.                                |
+| Metadatos            | PostgreSQL                                                      | 13                          | Base de datos de Airflow (`airflow`), con healthcheck `pg_isready`.                                                           |
+| Lenguaje             | Python                                                          | 3.12 (producer) / 3.13 (CI) | Generación de eventos y ejecución de pruebas.                                                                               |
+| Cliente Kafka        | kafka-python-ng (contenedor) / kafka-python 3.0.12 (local y CI) | —                          | Publicación de eventos y pruebas del producer.                                                                               |
+| API de Spark         | PySpark                                                         | 4.2.0                       | Dependencia local alineada con la versión del clúster.                                                                      |
+| Almacenamiento       | Apache Parquet                                                  | —                          | Data Lake en `processed/` (eventos) y `curated/` (KPIs y alertas).                                                            |
+| Pruebas              | pytest                                                          | —                          | 33 pruebas del contrato, reglas de alerta y producer.                                                                         |
+| CI                   | GitHub Actions                                                  | —                          | `compileall`, `pytest` y `docker compose config` en `main` y `Develop`.                                                       |
+| Diagramas            | PlantUML + Mermaid                                              | —                          | Diagramas de infraestructura y flujo de datos.                                                                                |
+| Control de versiones | Git + GitHub                                                    | —                          | Ramas, PR, issues, releases y ADR.                                                                                            |
 
 ### Roles
 
@@ -58,6 +91,9 @@ Para poder ejecutar esta solucion de forma local debes contar con las siguietene
   ```
 
   esto mostrará por terminal algún mensaje como: `git version 2.x.x...`
+- Puertos libres: 9092, 7077, 8081, 8082, 8085.
+- Recomendado: 8 GB de RAM para Docker.
+- Opcional para pruebas: Python 3.12 o 3.13.
 
 ## Como ejecutar localmente
 
@@ -122,8 +158,6 @@ Para poder acceder y correr de forma local este flujo de trabajo puedes seguir l
 7. docker compose up -d (con lo cual construiras toda la infraestructura del proyecto)
 8. 
 
-
-
 ## Indicadores Clave de Rendimiento (KPIs) y Reglas de Alerta
 
 * **Riesgo Principal:** Saturación y Déficit de Flota
@@ -179,67 +213,3 @@ Para poder acceder y correr de forma local este flujo de trabajo puedes seguir l
   Tener más de 80 pedidos sin chofer asignado durante más de 10 minutos garantiza que el tiempo total de entrega superará los 45 minutos (violando el SLA prometido de RapidGo). Esta alerta protege la reputación del servicio evitando cancelaciones masivas.
 
 ---
-
-## Topics y Contrato de Eventos (Kafka)
-
-* **Topic principal:** `rapidgo_demanda_zonas`
-* **Clave de particionamiento:** `zona` (garantiza orden cronológico zonal y optimiza el cálculo de ventanas en Spark sin *shuffle*, según ADR-001).
-* **Esquema del evento de pedido (JSON):**
-
-```json
-{
-  "pedido_id": "PED-001",
-  "zona": "ZONA_CENTRO",
-  "timestamp": "2026-11-10 20:15:30",
-  "categoria": "restaurante",
-  "estado": "CREADO"
-}
-```
-
----
-
-## Cómo Ejecutar Pruebas y GitHub Actions
-
-### 1. Pruebas Locales
-Para verificar la calidad del código y la configuración antes de hacer push:
-
-```bash
-# 1. Instalar dependencias
-pip install -r requirements.txt
-
-# 2. Validar sintaxis en todo el proyecto
-python -m compileall producer spark tests
-
-# 3. Ejecutar pruebas unitarias de reglas y umbrales
-python -m pytest -v
-
-# 4. Validar sintaxis del archivo Docker Compose
-docker compose config --quiet
-```
-
-### 2. Integración Continua (GitHub Actions)
-* **Automática:** Cada `push` o `Pull Request` hacia la rama principal ejecuta el workflow `ci.yml`, asegurando que no se integre código roto ni fallen las pruebas de umbrales.
-* **Manual (`workflow_dispatch`):** 
-  1. Ve al repositorio en GitHub y haz clic en la pestaña **Actions**.
-  2. Selecciona el workflow a la izquierda .
-  3. Haz clic en el botón desplegable **Run workflow** y confirma en **Run workflow**.
-
----
-
-## Cómo Acceder a Airflow y Ejecutar el DAG
-
-1. **Asegurar que los contenedores estén corriendo:**
-   ```bash
-   docker compose up -d
-   ```
-2. **Acceder a la interfaz web:**
-   * Abre tu navegador en: [http://localhost:8085](http://localhost:8085)
-   * **Usuario:** `admin`
-   * **Contraseña:** `admin`
-3. **Ejecutar el DAG:**
-   * En el listado de DAGs, busca **`rapid_go_dag`**.
-   * Asegúrate de que el interruptor (toggle) a la izquierda esté en **ON** (azul).
-   * En la columna de acciones a la derecha, haz clic en el botón **Trigger DAG** (botón de **Play**).
-4. **Monitoreo y Trazabilidad:**
-   * Haz clic sobre el nombre del DAG y entra a la pestaña **Graph** para ver las 12 tareas ejecutándose en paralelo y secuencia.
-   * Para consultar los datos compartidos por XCom: ve al menú superior **Admin $\rightarrow$ XComs** para ver las métricas consolidadas (`total_pedidos_criticos`, `resumen_zonas_calientes`).
