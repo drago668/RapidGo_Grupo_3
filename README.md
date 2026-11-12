@@ -168,16 +168,19 @@ Para poder acceder y correr de forma local este flujo de trabajo puedes seguir l
 
   $$
   \text{Throughput}(z, t) = \frac{\text{Conteo de pedidos en zona } z \text{ en la ventana } [t - 5\text{ min}, t]}{5\text{ minutos}}
+
   $$
 * **KPI 2 (% Participación):**
 
   $$
   \ \text{ Demanda}(z) = \left( \frac{\text{Pedidos en Zona } z}{\sum_{k \in \text{Zonas}} \text{Pedidos en Zona } k} \right) \times 100
+
   $$
 * **KPI 3 (Segmentación horaria):**
 
   $$
   \text{Volumen}(f, c) = \text{COUNT}(\text{pedidos}) \quad \forall \text{ timestamp} \in \text{Franja } f \land \text{categoría} = c
+
   $$
 
 ---
@@ -281,8 +284,9 @@ Se implementaron pruebas automatizadas con pytest y flujos de Integración Conti
 
 ### Evidencia
 
-![Sistema corriendo correctamente](image.png)
-![Comprobación con el workflow](image-1.png)
+![Sistema corriendo correctamente](image/README/image.png)
+![Comprobación con el workflow](image/README/image-1.png)
+
 
 ## Limitaciones y trabajo futuro
 
@@ -301,8 +305,8 @@ Conectar el sistema a una infraestructura de producción real en la nube y habil
 ## Tabla de Contribuciones
 
 
-| Integrante                          | Responsabilidades Principales                                                                                                                                                                            | Issues Clave                                                                                                                                                                    | PRs Principales                                                                                                                                                                   |
-| :------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Daniel Esteban Rivera Gomez**     | • Configuración inicial (docker , entorno virtual y estructura base).• Creación del GitHub Actions.• Creación del DAG en Airflow y las tareas iniciales • Implementación del error 1 controlado. | • `#1` (Arquitectura)• `#7` (Creación GitHub Actions) • `#25` (test: Provocar y observar un fallo controlado en el pipeline)                                                | • **PR #19#19#19#19#19#19#19#19** (validar sintaxis, pruebas)• **PR #28#28#28#28#28#28#28#28** (Creación de tareas en el DAG)                                                  |
-| **Luisa Valentina Rodriguez Perez** | • Integración deL producer.• Configuración de politica de reintentos en el DAG.  • Implementación del error 3 controlado                                                                           | • `#4` (Desarrollo del Producer)• `#24` (Implementar paso de metadatos con XCom usando contrato JSON) • `#25` (test: Provocar y observar un fallo controlado en el pipeline) | • **PR #17#17#17#17#17#17#17#17** (Creacion del Producer y su acoplamiento)• **PR #29#29#29#29#29#29#29#29** (Implementacion de XCom y de la politica de reintento justificado) |
-| **Shirley Dayana Perez Esquivel**   | • Desarrollo del Spark.• Desarrollo de las tareas en paralelo en el DAG.• Implementación del error 2 controlado.                                                                                     | • `#5` (Construcción del scrip de Spark)• `#6` (Implementación para calcular KPIs) • `#23` (Definir dependencias y flujo en paralelo)                                      | • **PR #16#16#16#16#16#16#16#16** (Spark streaming)• **PR #13#13#13#13#13#13#13#13** (adr 001)                                                                                  |
+| Integrante                          | Responsabilidades Principales                                                                                                                                                                            | Issues Clave                                                                                                                                                                    | PRs Principales                                                                                                                                                                                                                                                                                                                   |
+| :------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Daniel Esteban Rivera Gomez**     | • Configuración inicial (docker , entorno virtual y estructura base).• Creación del GitHub Actions.• Creación del DAG en Airflow y las tareas iniciales • Implementación del error 1 controlado. | • `#1` (Arquitectura)• `#7` (Creación GitHub Actions) • `#25` (test: Provocar y observar un fallo controlado en el pipeline)                                                | • **PR #19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19#19** (validar sintaxis, pruebas)• **PR #28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28#28** (Creación de tareas en el DAG)                                                  |
+| **Luisa Valentina Rodriguez Perez** | • Integración deL producer.• Configuración de politica de reintentos en el DAG.  • Implementación del error 3 controlado                                                                           | • `#4` (Desarrollo del Producer)• `#24` (Implementar paso de metadatos con XCom usando contrato JSON) • `#25` (test: Provocar y observar un fallo controlado en el pipeline) | • **PR #17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17#17** (Creacion del Producer y su acoplamiento)• **PR #29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29#29** (Implementacion de XCom y de la politica de reintento justificado) |
+| **Shirley Dayana Perez Esquivel**   | • Desarrollo del Spark.• Desarrollo de las tareas en paralelo en el DAG.• Implementación del error 2 controlado.                                                                                     | • `#5` (Construcción del scrip de Spark)• `#6` (Implementación para calcular KPIs) • `#23` (Definir dependencias y flujo en paralelo)                                      | • **PR #16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16#16** (Spark streaming)• **PR #13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13#13** (adr 001)                                                                                  |
