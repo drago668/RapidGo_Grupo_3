@@ -4,6 +4,7 @@
 
 - [Variante 5: demanda por zonas](#variante-5-demanda-por-zonas)
 - [Miembros del grupo](#miembros-del-grupo)
+- [Video entregable](#video-entregable)
 - [Problema de negocio](#problema-de-negocio)
   - [Valor de la solución](#valor-de-la-solución)
 - [Arquitectura de la solución](#arquitectura-de-la-solucion)
@@ -42,6 +43,9 @@
 - Daniel Esteban Rivera Gomez
 - Lusia Valentina Rodriguez Perez
 - Shirley Dayana Perez Esquivel
+
+## Video entregable
+- [video RapidGo Demanda Por Zonas Grupo3](https://youtu.be/39r9deEWAQo)
 
 ## Problema de negocio
 
